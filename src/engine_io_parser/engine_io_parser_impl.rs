@@ -1,11 +1,11 @@
-use crate::data::errors::ParserError;
-use crate::data::{Packet, PacketType};
-use crate::parser::SocketIoParser;
+use crate::engine_io_parser::EngineIoParser;
 use std::convert::TryFrom;
+use crate::engine_io_parser::packet::{Packet, PacketType};
+use crate::engine_io_parser::errors::ParserError;
 
-pub struct SocketIOParserImpl {}
+pub struct EngineIOParserImpl {}
 
-impl SocketIoParser for SocketIOParserImpl {
+impl EngineIoParser for EngineIOParserImpl {
     fn encode_packet(packet: Packet) -> Vec<u8> {
         let mut buffer: Vec<u8> = Vec::with_capacity(packet.data.len() + 1);
 
@@ -33,15 +33,15 @@ impl SocketIoParser for SocketIOParserImpl {
 
 #[cfg(test)]
 mod tests {
-    use crate::data::{Packet, PacketType};
-    use crate::parser::parser_impl::SocketIOParserImpl;
-    use crate::parser::SocketIoParser;
+    use crate::engine_io_parser::engine_io_parser_impl::EngineIOParserImpl;
+    use crate::engine_io_parser::EngineIoParser;
+    use crate::engine_io_parser::packet::{Packet, PacketType};
 
     #[test]
     fn encode_packet_test() {
         let data: Vec<u8> = vec![1, 2, 3];
         let packet = Packet::new(PacketType::Open, data);
-        let res = SocketIOParserImpl::encode_packet(packet);
+        let res = EngineIOParserImpl::encode_packet(packet);
         let expected: Vec<u8> = vec![0, 1, 2, 3];
         assert_eq!(expected, res)
     }
@@ -49,7 +49,7 @@ mod tests {
     #[test]
     fn decode_packet_test() {
         let data: Vec<u8> = vec![0, 1, 2, 3];
-        let packet = SocketIOParserImpl::decode_packet(&data).unwrap();
+        let packet = EngineIOParserImpl::decode_packet(&data).unwrap();
         let expected = Packet::new(PacketType::Open, vec![1, 2, 3]);
         assert_eq!(expected, packet);
     }

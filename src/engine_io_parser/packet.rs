@@ -1,7 +1,5 @@
-use crate::data::errors::ParserError;
+use crate::engine_io_parser::errors::ParserError;
 use std::convert::TryFrom;
-
-pub mod errors;
 
 #[repr(u8)]
 #[derive(Debug, PartialEq, Eq)]

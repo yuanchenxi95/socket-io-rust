@@ -1,5 +1,4 @@
-pub mod data;
-pub mod parser;
+pub mod engine_io_parser;
 
 #[cfg(test)]
 mod tests {

@@ -7,6 +7,3 @@ pub enum ParserError {
     #[error("Empty Packet")]
     EmptyPacket,
 }
-
-#[derive(Debug, Error)]
-pub enum SocketIoError {}
