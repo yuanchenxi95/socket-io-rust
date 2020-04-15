@@ -1,8 +1,11 @@
+use crate::engine_io_parser::errors::ParserError;
+use crate::engine_io_parser::packet::{Packet, PacketType};
 use crate::engine_io_parser::EngineIoParser;
 use std::convert::TryFrom;
-use crate::engine_io_parser::packet::{Packet, PacketType};
-use crate::engine_io_parser::errors::ParserError;
 
+/// Implementation of the [`EngineIoParser`] trait
+///
+/// [`EngineIoParser`]: trait.EngineIoParser.html
 pub struct EngineIOParserImpl {}
 
 impl EngineIoParser for EngineIOParserImpl {
@@ -34,8 +37,8 @@ impl EngineIoParser for EngineIOParserImpl {
 #[cfg(test)]
 mod tests {
     use crate::engine_io_parser::engine_io_parser_impl::EngineIOParserImpl;
-    use crate::engine_io_parser::EngineIoParser;
     use crate::engine_io_parser::packet::{Packet, PacketType};
+    use crate::engine_io_parser::EngineIoParser;
 
     #[test]
     fn encode_packet_test() {
