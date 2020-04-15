@@ -61,7 +61,7 @@ jobs:
           cargo install --force --no-default-features --features ci-autoclean cargo-cache
           cargo-cache
 
-  grcov:
+  tarpaulin:
     name: Coverage
     runs-on: ubuntu-latest
     steps:
@@ -83,10 +83,8 @@ jobs:
         uses: actions/cache@v1
         with:
           path: target
-          key: ${{ runner.os }}-target-nightly-${{ hashFiles('**/Cargo.lock') }}-quiet
-          restore-keys: |
-            ${{ runner.os }}-target-nightly-${{ hashFiles('**/Cargo.lock') }}-
-            ${{ runner.os }}-target-nightly-
+          key: ${{ runner.os }}-target-nightly-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-target-nightly-
       - name: Install nightly toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -94,27 +92,27 @@ jobs:
           toolchain: nightly
           override: true
 
-#      - name: Run cargo clean
-#        uses: actions-rs/cargo@v1
-#        with:
-#          command: clean
-#          args: --package graph
-      - name: Run cargo test
+      - name: Install cargo-tarpaulin
         uses: actions-rs/cargo@v1
-        env:
-          CARGO_INCREMENTAL: '0'
-          RUSTFLAGS: '-Awarnings -Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads'
         with:
-          command: test
-          args: --all-features --no-fail-fast
-      - name: Run grcov
-        id: coverage
-        uses: action-util/grcov@v0.1.4
-      - name: Generate coverage report
+          command: install
+          args: cargo-tarpaulin -f
+
+      - name: Run tarpaulin
+        uses: actions-rs/cargo@v1
+        with:
+          command: tarpaulin
+          args: |
+            --verbose
+            --run-types Tests Doctests Examples
+            --ignore-panics
+            --out Html Lcov
+            --output-dir coverage/
+
+      - name: Prepare coverage report
         run: |
           sudo apt-get install lcov
-          sed -e '/^SF:\//,/^end_of_record$/d' ${{ steps.coverage.outputs.report }} > coverage.info
-          genhtml -o coverage coverage.info
+          genhtml -o coverage coverage/lcov.info
 
       - name: Generate artifact slug
         id: split-path
