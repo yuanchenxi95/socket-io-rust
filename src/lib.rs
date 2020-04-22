@@ -1,4 +1,5 @@
 pub mod engine_io_parser;
+pub mod engine_io_server;
 
 #[cfg(test)]
 mod tests {

@@ -13,3 +13,6 @@ opt-level = 3
 
 [dependencies]
 thiserror = "1.0"
+actix = "0.9"
+actix-web = "2.0"
+actix-web-actors = "2.0"
