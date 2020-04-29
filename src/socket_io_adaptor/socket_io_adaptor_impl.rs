@@ -60,7 +60,10 @@ impl SocketIoAdaptor {
             let sid = self.sids.entry(id.to_string()).or_insert_with(HashSet::new);
             sid.insert(room_id.to_string());
 
-            let room = self.rooms.entry(room_id.to_string()).or_insert_with(Room::new);
+            let room = self
+                .rooms
+                .entry(room_id.to_string())
+                .or_insert_with(Room::new);
             room.add(id);
         }
     }
@@ -117,7 +120,6 @@ mod socket_io_adaptor_tests {
     use crate::socket_io_adaptor::socket_io_adaptor_impl::SocketIoAdaptor;
 
     fn set_up() -> SocketIoAdaptor {
-
         let mut adaptor = SocketIoAdaptor::new();
         adaptor.add("sid1", "room1");
         adaptor.add("sid1", "room2");
