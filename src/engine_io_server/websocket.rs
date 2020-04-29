@@ -1,30 +1,25 @@
 use std::time::{Duration, Instant};
 
 use actix::{Actor, ActorContext, AsyncContext, StreamHandler};
-use actix_web::{web, Error, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
-
 
 /// How often heartbeat pings are sent
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(5);
 /// How long before lack of client response causes a timeout
 const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
-#[allow(dead_code)]
-/// do websocket handshake and start `MyWebSocket` actor
-async fn ws_index(r: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
-    println!("{:?}", r);
-    let res = ws::start(MyWebSocket::new(), &r, stream);
-    println!("{:?}", res);
-    res
-}
-
 /// websocket connection is long running connection, it easier
 /// to handle with an actor
-struct MyWebSocket {
+pub struct MyWebSocket {
     /// Client must send ping at least once per 10 seconds (CLIENT_TIMEOUT),
     /// otherwise we drop connection.
     hb: Instant,
+}
+
+impl Default for MyWebSocket {
+    fn default() -> Self {
+        MyWebSocket::new()
+    }
 }
 
 impl Actor for MyWebSocket {
@@ -40,7 +35,6 @@ impl Actor for MyWebSocket {
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWebSocket {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         // process websocket messages
-        println!("WS: {:?}", msg);
         match msg {
             Ok(ws::Message::Ping(msg)) => {
                 self.hb = Instant::now();
@@ -61,7 +55,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWebSocket {
 
 #[allow(dead_code)]
 impl MyWebSocket {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self { hb: Instant::now() }
     }
 
@@ -72,9 +66,6 @@ impl MyWebSocket {
         ctx.run_interval(HEARTBEAT_INTERVAL, |act, ctx| {
             // check client heartbeats
             if Instant::now().duration_since(act.hb) > CLIENT_TIMEOUT {
-                // heartbeat timed out
-                println!("Websocket Client heartbeat failed, disconnecting!");
-
                 // stop actor
                 ctx.stop();
 

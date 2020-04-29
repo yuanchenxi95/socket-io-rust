@@ -1,5 +1,6 @@
 use crate::engine_io_parser::packet::Packet;
 use std::collections::HashMap;
+use std::fmt::Error;
 
 pub enum TransportReadyState {
     OPENING,
@@ -20,7 +21,10 @@ pub struct TransportOptions {
 }
 
 pub trait Transport {
-    fn open() -> Self;
-    fn close() -> Self;
-    fn send(packets: Vec<Packet>);
+    fn open(&mut self);
+    fn close(&mut self);
+    fn send(&mut self, packets: Vec<Packet>);
+    fn on_open(&mut self);
+    fn on_data(&mut self, data: [u8]);
+    fn on_error(&mut self, err: Error);
 }
