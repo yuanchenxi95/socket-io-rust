@@ -6,7 +6,7 @@ struct Room {
 
 impl Room {
     pub fn new() -> Self {
-        Room {
+        Self {
             sockets: HashSet::new(),
         }
     }
@@ -24,20 +24,20 @@ impl Room {
     }
 }
 
-pub struct SocketIoAdaptor {
+pub struct ChatRoomManager {
     rooms: HashMap<String, Room>,
     sids: HashMap<String, HashSet<String>>,
 }
 
-impl Default for SocketIoAdaptor {
+impl Default for ChatRoomManager {
     fn default() -> Self {
-        SocketIoAdaptor::new()
+        ChatRoomManager::new()
     }
 }
 
-impl SocketIoAdaptor {
+impl ChatRoomManager {
     pub fn new() -> Self {
-        SocketIoAdaptor {
+        Self {
             rooms: HashMap::new(),
             sids: HashMap::new(),
         }
@@ -73,13 +73,13 @@ impl SocketIoAdaptor {
             room_map.remove(room_id);
         }
 
-        SocketIoAdaptor::remove_id_from_room(&mut self.rooms, id, room_id);
+        ChatRoomManager::remove_id_from_room(&mut self.rooms, id, room_id);
     }
 
     pub fn delete_all(&mut self, id: &str) {
         if let Some(rooms) = self.sids.get(id) {
             for room_id in rooms {
-                SocketIoAdaptor::remove_id_from_room(&mut self.rooms, id, room_id);
+                ChatRoomManager::remove_id_from_room(&mut self.rooms, id, room_id);
             }
         }
 
@@ -87,7 +87,7 @@ impl SocketIoAdaptor {
     }
 
     /// Get a set of socket id from the given rooms
-    pub fn get_all_sids_from_rooms(&self, room_ids: Vec<&str>) -> HashSet<String> {
+    pub fn get_all_sids_from_rooms(&self, room_ids: Vec<&str>) -> Vec<String> {
         let mut sid_set = HashSet::new();
         for room_id in room_ids {
             if let Some(room) = self.rooms.get(room_id) {
@@ -97,30 +97,35 @@ impl SocketIoAdaptor {
                 }
             }
         }
-        sid_set
+        sid_set.into_iter().collect()
     }
 
     /// Get a set of all socket in this adapter
-    pub fn get_all_sids(&self) -> HashSet<String> {
+    pub fn get_all_sids(&self) -> Vec<String> {
         // todo check socket connected
         self.sids.keys().cloned().collect()
     }
 
     /// Get the set of rooms that a given socket has joined
-    pub fn get_socket_rooms(&self, id: &str) -> Option<HashSet<String>> {
+    pub fn get_socket_rooms(&self, id: &str) -> Vec<String> {
         if let Some(room_map) = self.sids.get(id) {
-            return Some(room_map.clone());
+            return room_map.iter().map(|s| s.to_owned()).collect();
         }
-        None
+        Vec::new()
+    }
+
+    /// Get all rooms in the manager
+    pub fn get_all_rooms(&self) -> Vec<String> {
+        self.rooms.keys().map(|s| s.to_owned()).collect()
     }
 }
 
 #[cfg(test)]
 mod socket_io_adaptor_tests {
-    use crate::socket_io_adaptor::socket_io_adaptor_impl::SocketIoAdaptor;
+    use crate::socket_io_adaptor::chat_room_manager::ChatRoomManager;
 
-    fn set_up() -> SocketIoAdaptor {
-        let mut adaptor = SocketIoAdaptor::new();
+    fn set_up() -> ChatRoomManager {
+        let mut adaptor = ChatRoomManager::new();
         adaptor.add("sid1", "room1");
         adaptor.add("sid1", "room2");
         adaptor.add("sid2", "room1");
@@ -131,7 +136,7 @@ mod socket_io_adaptor_tests {
 
     #[test]
     pub fn add_test() {
-        let mut adaptor = SocketIoAdaptor::new();
+        let mut adaptor = ChatRoomManager::new();
         adaptor.add("sid1", "room1");
 
         let rooms = adaptor.sids.get("sid1").unwrap();
@@ -145,7 +150,7 @@ mod socket_io_adaptor_tests {
 
     #[test]
     pub fn delete_test() {
-        let mut adaptor = SocketIoAdaptor::new();
+        let mut adaptor = ChatRoomManager::new();
         adaptor.add("sid1", "room1");
         adaptor.add("sid1", "room2");
         adaptor.delete("sid1", "room2");
@@ -162,7 +167,7 @@ mod socket_io_adaptor_tests {
 
     #[test]
     pub fn delete_all_test() {
-        let mut adaptor = SocketIoAdaptor::new();
+        let mut adaptor = ChatRoomManager::new();
         adaptor.add("sid1", "room1");
         adaptor.add("sid1", "room2");
         adaptor.add("sid2", "room1");
@@ -180,21 +185,38 @@ mod socket_io_adaptor_tests {
     pub fn test_get_all_sids_from_rooms() {
         let adaptor = set_up();
 
-        let sids = adaptor.get_all_sids_from_rooms(vec!["room1", "room2"]);
-
-        assert!(sids.contains("sid1"));
-        assert!(sids.contains("sid2"));
-        assert_eq!(sids.len(), 2);
+        let mut sids = adaptor.get_all_sids_from_rooms(vec!["room1", "room2"]);
+        sids.sort();
+        assert_eq!(sids, vec![String::from("sid1"), String::from("sid2")]);
     }
 
     #[test]
     pub fn test_get_all_sids() {
         let adaptor = set_up();
-        let sids = adaptor.get_all_sids();
+        let mut sids = adaptor.get_all_sids();
+        sids.sort();
+        assert_eq!(
+            sids,
+            vec![
+                String::from("sid1"),
+                String::from("sid2"),
+                String::from("sid3")
+            ]
+        );
+    }
 
-        assert!(sids.contains("sid1"));
-        assert!(sids.contains("sid2"));
-        assert!(sids.contains("sid3"));
-        assert_eq!(sids.len(), 3);
+    #[test]
+    pub fn test_get_all_rooms() {
+        let adaptor = set_up();
+        let mut rooms = adaptor.get_all_rooms();
+        rooms.sort();
+        assert_eq!(
+            rooms,
+            vec![
+                String::from("room1"),
+                String::from("room2"),
+                String::from("room3")
+            ]
+        );
     }
 }
