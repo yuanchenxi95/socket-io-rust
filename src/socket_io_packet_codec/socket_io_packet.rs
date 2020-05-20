@@ -1,5 +1,5 @@
-use crate::socket_io_parser::socket_io_packet_type::SocketIoPacketType;
 use serde_json::Value;
+use crate::socket_io_packet_codec::packet_type::SocketIoPacketType;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct SocketIoPacket {

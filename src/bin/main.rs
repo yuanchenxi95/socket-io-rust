@@ -23,7 +23,7 @@ async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "actix_server=info,actix_web=info");
 
     let mut nsm = NamespaceManager::new();
-    nsm.create_namespace("/");
+    nsm.create_namespace("/").unwrap();
     let app_state = AppState::new(nsm);
 
     let counter = web::Data::new(app_state);

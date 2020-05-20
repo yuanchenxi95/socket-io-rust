@@ -47,7 +47,8 @@ impl Handler<SocketMessage> for SocketIoWebsocket {
     type Result = Result<(), io::Error>;
 
     fn handle(&mut self, msg: SocketMessage, ctx: &mut Self::Context) -> Self::Result {
-        ctx.text(msg.content);
+        let content = format!("{},{}", msg.event_name, msg.content);
+        ctx.text(content);
         Ok(())
     }
 }

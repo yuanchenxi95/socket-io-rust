@@ -3,25 +3,54 @@ use crate::socket_io_adaptor::socket_id_manager::SocketIdManager;
 use crate::socket_io_websocket::socket_io_websocket_impl::SocketIoWebsocket;
 use crate::socket_io_websocket::socket_message::SocketMessage;
 use actix::Addr;
+use thiserror::Error;
 
-pub struct Namespace {
+#[derive(Error, Debug)]
+#[error("Namespace Error: {}", self.0)]
+pub struct NamespaceNameError(&'static str);
+
+//todo create namespaceName
+pub struct NamespaceName {
     name: String,
-    chat_room_manager: ChatRoomManager,
-    socket_id_manager: SocketIdManager,
 }
 
-impl Default for Namespace {
+impl Default for NamespaceName {
     fn default() -> Self {
         Self {
-            name: String::from("/"),
-            chat_room_manager: ChatRoomManager::new(),
-            socket_id_manager: SocketIdManager::new(),
+            name: "/".to_string(),
         }
     }
 }
 
+impl NamespaceName {
+    pub fn try_new(name: &str) -> Result<Self, NamespaceNameError> {
+        if name.is_empty() {
+            return Err(NamespaceNameError("name cannot be empty."));
+        }
+
+        if !name.starts_with('/') {
+            return Err(NamespaceNameError("name must start with slash '/'."));
+        }
+
+        if name.contains(',') {
+            return Err(NamespaceNameError("name cannot contain comma."));
+        }
+
+        Ok(Self {
+            name: name.to_string(),
+        })
+    }
+}
+
+#[derive(Default)]
+pub struct Namespace {
+    name: NamespaceName,
+    chat_room_manager: ChatRoomManager,
+    socket_id_manager: SocketIdManager,
+}
+
 impl Namespace {
-    pub fn new(name: String) -> Self {
+    pub fn new(name: NamespaceName) -> Self {
         Self {
             name,
             chat_room_manager: ChatRoomManager::new(),
@@ -70,5 +99,9 @@ impl Namespace {
         let rooms = self.chat_room_manager.get_all_rooms();
         let rooms = rooms.iter().map(|s| s.as_str()).collect();
         self.emit_to_rooms(rooms, event_name, message);
+    }
+
+    pub fn get_name(&self) -> &str {
+        &self.name.name
     }
 }

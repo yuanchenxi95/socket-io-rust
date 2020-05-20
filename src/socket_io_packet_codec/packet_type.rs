@@ -1,5 +1,5 @@
-use crate::socket_io_parser::number_util::convert_char_to_number;
 use std::convert::TryFrom;
+use crate::socket_io_packet_codec::number_util::convert_char_to_number;
 
 #[derive(Debug, PartialOrd, PartialEq, Copy, Clone)]
 pub enum SocketIoPacketType {
@@ -43,16 +43,13 @@ impl SocketIoPacketType {
         }
     }
 
-    pub fn convert_to_encoded_string(&self) -> String {
-        (self.clone() as u8).to_string()
-    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::socket_io_parser::socket_io_packet_type::SocketIoPacketType;
-    use crate::socket_io_parser::socket_io_packet_type::SocketIoPacketType::*;
     use std::convert::TryFrom;
+    use crate::socket_io_packet_codec::packet_type::SocketIoPacketType;
+    use crate::socket_io_packet_codec::packet_type::SocketIoPacketType::{*};
 
     #[test]
     fn convert_from_char_test() {
@@ -116,21 +113,4 @@ mod tests {
         assert!(SocketIoPacketType::try_from(111).is_err());
     }
 
-    #[test]
-    fn convert_to_encoded_string_test() {
-        let chars = vec!['0', '1', '2', '3', '4', '5', '6'];
-        let types = vec![
-            Connect,
-            Disconnect,
-            Event,
-            Ack,
-            Error,
-            BinaryEvent,
-            BinaryAck,
-        ];
-
-        for (&left, right) in chars.iter().zip(types) {
-            assert_eq!(left.to_string(), right.convert_to_encoded_string());
-        }
-    }
 }

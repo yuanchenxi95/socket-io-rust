@@ -1,14 +1,13 @@
 use std::collections::{HashMap, HashSet};
 
+#[derive(Default)]
 struct Room {
     sockets: HashSet<String>,
 }
 
 impl Room {
     pub fn new() -> Self {
-        Self {
-            sockets: HashSet::new(),
-        }
+        Self::default()
     }
 
     pub fn add(&mut self, sid: &str) {
@@ -24,23 +23,15 @@ impl Room {
     }
 }
 
+#[derive(Default)]
 pub struct ChatRoomManager {
     rooms: HashMap<String, Room>,
     sids: HashMap<String, HashSet<String>>,
 }
 
-impl Default for ChatRoomManager {
-    fn default() -> Self {
-        ChatRoomManager::new()
-    }
-}
-
 impl ChatRoomManager {
     pub fn new() -> Self {
-        Self {
-            rooms: HashMap::new(),
-            sids: HashMap::new(),
-        }
+        Self::default()
     }
     fn remove_id_from_room(rooms: &mut HashMap<String, Room>, id: &str, room_id: &str) {
         if let Some(room) = rooms.get_mut(room_id) {
