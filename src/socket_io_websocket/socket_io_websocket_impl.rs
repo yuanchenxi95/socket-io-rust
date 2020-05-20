@@ -68,7 +68,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketIoWebsocket
                 let namespace_manager = self.global_state.namespace_manager.read().unwrap();
                 let adaptor = namespace_manager.get_adaptor("/").unwrap();
 
-                adaptor.emit_to_all(&text);
+                adaptor.emit_to_all("hello", &text);
             }
             Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
             Ok(ws::Message::Close(_)) => {
