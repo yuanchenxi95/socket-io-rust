@@ -21,24 +21,18 @@ pub struct SocketIoWebsocket {
     hb: Instant,
     global_state: web::Data<AppState>,
     id: String,
+    namespace: String,
 }
 
 impl Actor for SocketIoWebsocket {
     type Context = ws::WebsocketContext<Self>;
 
-    /// Method is called on actor start. We start the heartbeat process here.
     fn started(&mut self, ctx: &mut Self::Context) {
-        let mut namespace_manager = self.global_state.namespace_manager.write().unwrap();
-        let adaptor = namespace_manager.get_adaptor_mut("/").unwrap();
-        adaptor.add_socket(&self.id, ctx.address());
-
-        self.hb(ctx);
+        self.start_web_socket(ctx);
     }
 
     fn stopped(&mut self, _: &mut Self::Context) {
-        let mut namespace_manager = self.global_state.namespace_manager.write().unwrap();
-        let adaptor = namespace_manager.get_adaptor_mut("/").unwrap();
-        adaptor.remove_socket(&self.id);
+        self.stop_web_socket();
     }
 }
 
@@ -69,7 +63,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketIoWebsocket
                 let adaptor = namespace_manager.get_adaptor("/").unwrap();
                 adaptor.emit_to_all("hello", &text);
             }
-            Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
+            Ok(ws::Message::Binary(_)) => {
+                // todo unsupported binary
+                ctx.stop();
+            },
             Ok(ws::Message::Close(_)) => {
                 ctx.stop();
             }
@@ -80,11 +77,12 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketIoWebsocket
 
 #[allow(dead_code)]
 impl SocketIoWebsocket {
-    pub fn new(data: web::Data<AppState>) -> Self {
+    pub fn new(data: web::Data<AppState>, namespace: &str) -> Self {
         Self {
             hb: Instant::now(),
             global_state: data,
             id: RandomIdGenerator::get_random_uuid(),
+            namespace: namespace.to_string(),
         }
     }
 
@@ -104,5 +102,28 @@ impl SocketIoWebsocket {
 
             ctx.ping(b"");
         });
+    }
+
+    fn start_web_socket(&mut self, ctx: &mut <Self as Actor>::Context) {
+        self.add_socket_to_adaptor(ctx);
+        self.hb(ctx);
+    }
+
+
+    fn stop_web_socket(&mut self) {
+        self.remove_socket_from_adaptor();
+    }
+
+
+    fn add_socket_to_adaptor(&mut self, ctx: &mut <Self as Actor>::Context) {
+        let mut namespace_manager = self.global_state.namespace_manager.write().unwrap();
+        let adaptor = namespace_manager.get_adaptor_mut(&self.namespace).unwrap();
+        adaptor.add_socket(&self.id, ctx.address());
+    }
+
+    fn remove_socket_from_adaptor(&mut self) {
+        let mut namespace_manager = self.global_state.namespace_manager.write().unwrap();
+        let adaptor = namespace_manager.get_adaptor_mut("/").unwrap();
+        adaptor.remove_socket(&self.id);
     }
 }

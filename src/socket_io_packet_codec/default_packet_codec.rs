@@ -1,22 +1,16 @@
 use crate::socket_io_packet_codec::number_util::convert_char_to_number;
 use crate::socket_io_packet_codec::packet_type::SocketIoPacketType;
 use crate::socket_io_packet_codec::socket_io_packet::SocketIoPacket;
-use crate::socket_io_packet_codec::SocketIoPacketCodec;
+use crate::socket_io_packet_codec::{SocketIoPacketCodec, PacketCodecError};
 use core::fmt;
-use thiserror::Error;
 
-#[derive(Debug, Error)]
-pub enum DefaultPacketCodecError {
-    #[error("Decoding Socket IO packet Error")]
-    DecodeError,
-    #[error("Encoding Socket IO packet Error: {}", 0)]
-    EncodeError(#[from] fmt::Error),
-}
 
+#[derive(Default, Debug)]
 pub struct DefaultPacketCodec;
 
+
 impl SocketIoPacketCodec for DefaultPacketCodec {
-    type Error = DefaultPacketCodecError;
+    type Error = PacketCodecError;
 
     fn encode(&self, packet: &SocketIoPacket, f: &mut impl fmt::Write) -> Result<(), Self::Error> {
         write!(f, "{}", packet.packet_type as u8)?;
@@ -39,7 +33,7 @@ impl SocketIoPacketCodec for DefaultPacketCodec {
 
     fn decode(&self, data: &str) -> Result<SocketIoPacket, Self::Error> {
         if data.is_empty() {
-            return Err(DefaultPacketCodecError::DecodeError);
+            return Err(PacketCodecError::DecodeError("Data is empty".to_string()));
         }
 
         let mut idx = 0;
@@ -47,7 +41,7 @@ impl SocketIoPacketCodec for DefaultPacketCodec {
 
         // get packet type
         let packet_type = SocketIoPacketType::convert_from_char(chars[idx])
-            .map_err(|_| DefaultPacketCodecError::DecodeError)?;
+            .map_err(|_| PacketCodecError::DecodeError("Unknown packet type".to_string()))?;
 
         let mut packet = SocketIoPacket {
             packet_type,
@@ -60,7 +54,7 @@ impl SocketIoPacketCodec for DefaultPacketCodec {
         if packet.packet_type == SocketIoPacketType::BinaryAck
             || packet.packet_type == SocketIoPacketType::BinaryEvent
         {
-            return Err(DefaultPacketCodecError::DecodeError);
+            return Err(PacketCodecError::DecodeError("Binary not supported".to_string()));
         }
 
         // get packet namespace
@@ -109,7 +103,7 @@ impl SocketIoPacketCodec for DefaultPacketCodec {
 
                 match id_builder.parse::<u32>() {
                     Ok(n) => packet.id = Some(n),
-                    Err(_) => return Err(DefaultPacketCodecError::DecodeError),
+                    Err(_) => return Err(PacketCodecError::DecodeError("Unable to parse ID".to_string())),
                 };
             }
         }
@@ -121,7 +115,7 @@ impl SocketIoPacketCodec for DefaultPacketCodec {
                 Ok(v) => {
                     packet.data = Some(v);
                 }
-                Err(_) => return Err(DefaultPacketCodecError::DecodeError),
+                Err(e) => return Err(PacketCodecError::DecodeError(e.to_string())),
             }
         }
 

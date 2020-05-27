@@ -5,20 +5,22 @@ use actix_web::web::Data;
 use actix_web::{web, Error, HttpRequest, HttpResponse, Scope};
 use actix_web_actors::ws;
 
-async fn ws_index(
-    data: web::Data<AppState>,
-    r: HttpRequest,
-    stream: web::Payload,
-) -> Result<HttpResponse, Error> {
-    ws::start(SocketIoWebsocket::new(data), &r, stream)
-}
-
-pub struct SocketIoServer {}
+#[derive(Debug)]
+pub struct SocketIoServer;
 
 impl SocketIoServer {
     pub fn get_socket_io_scope(path: &str, app_data: Data<AppState>) -> Scope {
+
+        async fn ws_index(
+            data: web::Data<AppState>,
+            r: HttpRequest,
+            stream: web::Payload,
+        ) -> Result<HttpResponse, Error> {
+            ws::start(SocketIoWebsocket::new(data, "/"), &r, stream)
+        }
+
         web::scope(path)
-            .app_data(app_data)
+            .app_data(app_data.clone())
             .service(web::resource("").route(web::get().to(ws_index)))
     }
 

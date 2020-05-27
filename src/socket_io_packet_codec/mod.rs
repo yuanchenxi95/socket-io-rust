@@ -5,8 +5,16 @@ mod number_util;
 pub mod packet_type;
 pub mod socket_io_packet;
 
-use std::error;
-use std::fmt;
+use thiserror::Error;
+use std::{fmt, error};
+
+#[derive(Debug, Error)]
+pub enum PacketCodecError {
+    #[error("Decoding Socket IO packet Error: {}", 0)]
+    DecodeError(String),
+    #[error("Encoding Socket IO packet Error: {}", 0)]
+    EncodeError(#[from] fmt::Error),
+}
 
 pub trait SocketIoPacketCodec {
     type Error: error::Error;
@@ -14,8 +22,29 @@ pub trait SocketIoPacketCodec {
     fn encode(&self, packet: &SocketIoPacket, f: &mut impl fmt::Write) -> Result<(), Self::Error>;
     fn decode(&self, data: &str) -> Result<SocketIoPacket, Self::Error>;
 
-    fn encode_packet_to_string(&self, packet: &SocketIoPacket) -> Result<String, Self::Error> {
+}
+
+
+pub(crate) trait SocketIoPacketCodecMono {
+    type Error;
+    fn encode_mono(&self, packet: &SocketIoPacket, f: &mut String) -> Result<(), Self::Error>;
+    fn encode_to_string_mono(&self, packet: &SocketIoPacket) -> Result<String, Self::Error>;
+    fn decode_mon(&self, data: &str) -> Result<SocketIoPacket, Self::Error>;
+}
+
+impl<T: SocketIoPacketCodec> SocketIoPacketCodecMono for T {
+    type Error = T::Error;
+
+    fn encode_mono(&self, packet: &SocketIoPacket, f: &mut String) -> Result<(), Self::Error> {
+        self.encode(packet, f)
+    }
+
+    fn encode_to_string_mono(&self, packet: &SocketIoPacket) -> Result<String, Self::Error> {
         let mut s = String::new();
         self.encode(packet, &mut s).map(|_| s)
+    }
+
+    fn decode_mon(&self, data: &str) -> Result<SocketIoPacket, Self::Error> {
+        self.decode(data)
     }
 }

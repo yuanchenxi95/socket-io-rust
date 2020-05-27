@@ -27,10 +27,9 @@ async fn main() -> std::io::Result<()> {
     //         .service(web::resource("/ws").route(web::get().to(ws_index)))
     // });
 
-    let data = SocketIoServer::get_app_data();
-
+    let app_data = SocketIoServer::get_app_data();
     HttpServer::new(move || {
-        App::new().service(SocketIoServer::get_socket_io_scope("/ws", data.clone()))
+        App::new().service(SocketIoServer::get_socket_io_scope("/ws", app_data.clone()))
     })
     // start http server on 127.0.0.1:8080
     .bind("127.0.0.1:8080")?
