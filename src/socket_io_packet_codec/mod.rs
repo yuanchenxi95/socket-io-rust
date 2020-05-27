@@ -2,8 +2,8 @@ use crate::socket_io_packet_codec::socket_io_packet::SocketIoPacket;
 
 pub mod default_packet_codec;
 mod number_util;
-pub mod socket_io_packet;
 pub mod packet_type;
+pub mod socket_io_packet;
 
 use std::error;
 use std::fmt;

@@ -1,9 +1,9 @@
 use crate::socket_io_packet_codec::number_util::convert_char_to_number;
+use crate::socket_io_packet_codec::packet_type::SocketIoPacketType;
 use crate::socket_io_packet_codec::socket_io_packet::SocketIoPacket;
 use crate::socket_io_packet_codec::SocketIoPacketCodec;
 use core::fmt;
 use thiserror::Error;
-use crate::socket_io_packet_codec::packet_type::SocketIoPacketType;
 
 #[derive(Debug, Error)]
 pub enum DefaultPacketCodecError {
@@ -46,7 +46,8 @@ impl SocketIoPacketCodec for DefaultPacketCodec {
         let chars: Vec<char> = data.chars().collect();
 
         // get packet type
-        let packet_type = SocketIoPacketType::convert_from_char(chars[idx]).map_err(|_| DefaultPacketCodecError::DecodeError)?;
+        let packet_type = SocketIoPacketType::convert_from_char(chars[idx])
+            .map_err(|_| DefaultPacketCodecError::DecodeError)?;
 
         let mut packet = SocketIoPacket {
             packet_type,
@@ -130,10 +131,10 @@ impl SocketIoPacketCodec for DefaultPacketCodec {
 
 #[cfg(test)]
 mod tests {
-    use crate::socket_io_packet_codec::socket_io_packet::SocketIoPacket;
     use crate::socket_io_packet_codec::default_packet_codec::DefaultPacketCodec;
-    use crate::socket_io_packet_codec::SocketIoPacketCodec;
     use crate::socket_io_packet_codec::packet_type::SocketIoPacketType;
+    use crate::socket_io_packet_codec::socket_io_packet::SocketIoPacket;
+    use crate::socket_io_packet_codec::SocketIoPacketCodec;
 
     fn convert_type_to_string(packet: SocketIoPacketType) -> String {
         format!("{}", packet as u8)
@@ -266,7 +267,6 @@ mod tests {
         let decoded = DefaultPacketCodec.decode(&input).unwrap();
         assert_eq!(packet, decoded);
     }
-
 
     #[test]
     fn decode_test_3() {

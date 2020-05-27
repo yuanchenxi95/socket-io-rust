@@ -1,15 +1,19 @@
 use crate::socket_io_adaptor::namespace::{Namespace, NamespaceName, NamespaceNameError};
 use std::collections::HashMap;
 
+#[derive(Debug)]
 pub struct NamespaceManager {
     nsp_adaptor_map: HashMap<String, Namespace>,
 }
 
 impl Default for NamespaceManager {
     fn default() -> Self {
-        Self {
+        let mut myself = Self {
             nsp_adaptor_map: HashMap::new(),
-        }
+        };
+        // create default namespace
+        myself.create_namespace("/").unwrap();
+        myself
     }
 }
 

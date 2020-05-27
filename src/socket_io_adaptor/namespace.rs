@@ -10,6 +10,7 @@ use thiserror::Error;
 pub struct NamespaceNameError(&'static str);
 
 //todo create namespaceName
+#[derive(Debug)]
 pub struct NamespaceName {
     name: String,
 }
@@ -42,7 +43,7 @@ impl NamespaceName {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Namespace {
     name: NamespaceName,
     chat_room_manager: ChatRoomManager,

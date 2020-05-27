@@ -14,6 +14,7 @@ const CLIENT_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// websocket connection is long running connection, it easier
 /// to handle with an actor
+#[derive(Debug)]
 pub struct SocketIoWebsocket {
     /// Client must send ping at least once per 10 seconds (CLIENT_TIMEOUT),
     /// otherwise we drop connection.
@@ -38,8 +39,6 @@ impl Actor for SocketIoWebsocket {
         let mut namespace_manager = self.global_state.namespace_manager.write().unwrap();
         let adaptor = namespace_manager.get_adaptor_mut("/").unwrap();
         adaptor.remove_socket(&self.id);
-
-        println!("Actor is stopped")
     }
 }
 
@@ -68,7 +67,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for SocketIoWebsocket
             Ok(ws::Message::Text(text)) => {
                 let namespace_manager = self.global_state.namespace_manager.read().unwrap();
                 let adaptor = namespace_manager.get_adaptor("/").unwrap();
-
                 adaptor.emit_to_all("hello", &text);
             }
             Ok(ws::Message::Binary(bin)) => ctx.binary(bin),

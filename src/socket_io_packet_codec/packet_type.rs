@@ -1,5 +1,5 @@
-use std::convert::TryFrom;
 use crate::socket_io_packet_codec::number_util::convert_char_to_number;
+use std::convert::TryFrom;
 
 #[derive(Debug, PartialOrd, PartialEq, Copy, Clone)]
 pub enum SocketIoPacketType {
@@ -42,14 +42,13 @@ impl SocketIoPacketType {
             None => Err(()),
         }
     }
-
 }
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
     use crate::socket_io_packet_codec::packet_type::SocketIoPacketType;
-    use crate::socket_io_packet_codec::packet_type::SocketIoPacketType::{*};
+    use crate::socket_io_packet_codec::packet_type::SocketIoPacketType::*;
+    use std::convert::TryFrom;
 
     #[test]
     fn convert_from_char_test() {
@@ -112,5 +111,4 @@ mod tests {
         assert!(SocketIoPacketType::try_from(9).is_err());
         assert!(SocketIoPacketType::try_from(111).is_err());
     }
-
 }

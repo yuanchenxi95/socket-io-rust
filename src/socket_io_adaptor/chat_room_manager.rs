@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 struct Room {
     sockets: HashSet<String>,
 }
@@ -23,7 +23,7 @@ impl Room {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct ChatRoomManager {
     rooms: HashMap<String, Room>,
     sids: HashMap<String, HashSet<String>>,

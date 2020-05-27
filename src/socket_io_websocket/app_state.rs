@@ -4,6 +4,7 @@ use std::sync::RwLock;
 // pub struct AppState {
 //     pub(crate) all_socket: RwLock<HashSet<Addr<SocketIoWebsocket>>>,
 // }
+#[derive(Debug)]
 pub struct AppState {
     pub namespace_manager: RwLock<NamespaceManager>,
 }

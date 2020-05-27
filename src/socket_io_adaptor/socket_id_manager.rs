@@ -2,17 +2,11 @@ use crate::socket_io_websocket::socket_io_websocket_impl::SocketIoWebsocket;
 use actix::Addr;
 use std::collections::HashMap;
 
+#[derive(Default, Debug)]
 pub struct SocketIdManager {
     id_socket_map: HashMap<String, Addr<SocketIoWebsocket>>,
 }
 
-impl Default for SocketIdManager {
-    fn default() -> Self {
-        Self {
-            id_socket_map: HashMap::new(),
-        }
-    }
-}
 impl SocketIdManager {
     pub fn new() -> Self {
         Self::default()
